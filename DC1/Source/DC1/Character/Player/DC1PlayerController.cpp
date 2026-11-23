@@ -961,7 +961,7 @@ void ADC1PlayerController::OnUIChange()
 		return;
 	}
 
-	if (true == UIManager->HasActiveScreen())
+	if (true == IsActiveNow)
 	{
 		SetBaseIMC(DC1IMCTags::IMC_UI);
 	}
