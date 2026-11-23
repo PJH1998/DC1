@@ -12,7 +12,9 @@ UDC1GA_Base_Work::UDC1GA_Base_Work(const FObjectInitializer& ObjectInitializer)
 	ActivationOwnedTags.AddTag(DC1StateTags::State_Working);
 }
 
-void UDC1GA_Base_Work::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)
+void UDC1GA_Base_Work::ActivateAbility(const FGameplayAbilitySpecHandle Handle, 
+	const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, 
+	const FGameplayEventData* TriggerEventData)
 {
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
 

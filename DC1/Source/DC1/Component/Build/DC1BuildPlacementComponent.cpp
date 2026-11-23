@@ -7,7 +7,6 @@
 #include "Component/Build/Placement/DC1BuildSnapSolver.h"
 
 #include "Define/DC1Helper.h"
-#include "Define/DC1BuildSupportHelper.h"
 #include "Define/DC1CraftHelper.h"
 #include "Tags/Asset/DC1GameplayTag_Asset.h"
 
@@ -281,9 +280,12 @@ void UDC1BuildPlacementComponent::Server_PlaceBuild_Implementation(const FGamepl
 		return;
 	}
 
-	// 서버 검증 여유 수치
-	if (false == IsInBuildRange(NewBuild, MaxDistance, DistanceMarginFactor) || false == DC1BuildSupportHelper::HasSupport(NewBuild)
-		|| false == NewBuild->CanPlaceAt(PC->PlayerState))
+	// 서버는 스냅 여부를 모름 - 자동 스냅 건축물은 미리보기와 같이 표면 검사 생략 ( 지지는 HasSupport가 판정 )
+	NewBuild->SetCheckSurface(NewBuild->GetIsAutoSnap());
+
+	// 서버 검증 여유 수치 + 미리보기와 같은 판정 ( 거점 / 재료 / 겹침 / 표면 / 지지 )
+	if (false == IsInBuildRange(NewBuild, MaxDistance, DistanceMarginFactor)
+		|| EDC1BuildBlockReason::None != NewBuild->EvaluateBlockReason(true, PC->PlayerState))
 	{
 		NewBuild->Destroy();
 		return;
@@ -624,7 +626,12 @@ void UDC1BuildPlacementComponent::OnSnapPressed()
 		return;
 	}
 
-	if (false == SnapSolver->BeginManualSnap(MakeSnapInput()))
+	// 성공하면 CurrentYaw 를 0으로 되돌리므로 판정도 0 기준
+	// ( 뗄 때 남긴 각도로 검사하면 회전된 박스가 대상과 겹쳐 실패한다 )
+	FDC1BuildSnapInput SnapInput = MakeSnapInput();
+	SnapInput.CurrentYaw = 0.f;
+
+	if (false == SnapSolver->BeginManualSnap(SnapInput))
 	{
 		return;
 	}
@@ -961,5 +968,5 @@ float UDC1BuildPlacementComponent::ComputeAimDistance() const
 
 	float FarDistance = FMath::Max(MaxDistance, CurrentPlaceDistance);
 
-	return FMath::GetMappedRangeValueClamped(FVector2f(-30.f, MaxFarDegree), FVector2f(CurrentPlaceDistance, FarDistance), Pitch);;
+	return FMath::GetMappedRangeValueClamped(FVector2f(-30.f, MaxFarDegree), FVector2f(CurrentPlaceDistance, FarDistance), Pitch);
 }

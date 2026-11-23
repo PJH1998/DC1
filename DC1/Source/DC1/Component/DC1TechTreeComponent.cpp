@@ -181,6 +181,7 @@ void UDC1TechTreeComponent::Server_UnlockAncientTech_Implementation(const FGamep
 
 	//StandAlone
 	OnRep_TechState();
+	OnRep_UnlockedTags();
 }
 
 const FDC1TechRow* UDC1TechTreeComponent::FindTechRow(const FGameplayTag& InTechTag) const

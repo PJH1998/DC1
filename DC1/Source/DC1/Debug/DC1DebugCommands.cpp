@@ -1,7 +1,7 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 // 디버그 콘솔 명령 ( ` 콘솔 ). Shipping 빌드에서는 등록되지 않는다
 
-#include "CoreMinimal.h"
+#include "Debug/DC1DebugCommands.h"
 
 #if !UE_BUILD_SHIPPING
 
@@ -15,6 +15,7 @@
 #include "GameFramework/GameStateBase.h"
 #include "GameFramework/PlayerController.h"
 
+#include "Character/Player/DC1PlayerController.h"
 #include "Character/Player/DC1PlayerState.h"
 #include "Component/Inventory/Player/DC1PlayerInventoryComponent.h"
 #include "Component/Pal/DC1PalPartyComponent.h"
@@ -31,10 +32,55 @@
 
 namespace DC1DebugCommands
 {
+	// 서버에서 ExecuteForPlayer 로 실행 중일 때 명령을 보낸 클라의 PC
+	TWeakObjectPtr<APlayerController> ForwardedCaller;
+
+	// 별도 프로세스 클라 ( 배치 파일로 띄운 -game 클라 ) 는 서버 PS 에 손댈 수 없으니 명령 문자열을 서버로 보낸다
+	// 보냈으면 true. PIE 클라는 서버 월드가 같은 프로세스에 있으므로 보내지 않는다
+	bool ForwardToServer(const TCHAR* InCommandName, const TArray<FString>& InArgs, UWorld* InWorld, FOutputDevice& Ar)
+	{
+		if (false == ::IsValid(InWorld) || NM_Client != InWorld->GetNetMode() || EWorldType::PIE == InWorld->WorldType)
+		{
+			return false;
+		}
+
+		const UGameInstance* GameInstance = InWorld->GetGameInstance();
+		ADC1PlayerController* LocalPC = (nullptr != GameInstance) ? Cast<ADC1PlayerController>(GameInstance->GetFirstLocalPlayerController()) : nullptr;
+		if (false == ::IsValid(LocalPC))
+		{
+			Ar.Logf(ELogVerbosity::Error, TEXT("[DC1Debug] No local DC1 player controller."));
+			return true;
+		}
+
+		const FString Command = FString::Printf(TEXT("%s %s"), InCommandName, *FString::Join(InArgs, TEXT(" ")));
+		LocalPC->ServerDebugCommand(Command);
+		Ar.Logf(TEXT("[DC1Debug] Sent to server : %s"), *Command);
+		return true;
+	}
+
+	void ExecuteForPlayer(APlayerController* InCaller, const FString& InCommand)
+	{
+		// 클라가 아무 서버 명령이나 실행하지 못하게 DC1.* 만 받는다
+		if (false == ::IsValid(InCaller) || false == InCommand.StartsWith(TEXT("DC1.")))
+		{
+			return;
+		}
+
+		ForwardedCaller = InCaller;
+		IConsoleManager::Get().ProcessUserConsoleInput(*InCommand, *GLog, InCaller->GetWorld());
+		ForwardedCaller.Reset();
+	}
+
 	// 명령을 친 로컬 플레이어의 서버 쪽 PlayerState
-	// PIE는 서버 · 클라 월드가 한 프로세스라 클라 콘솔에서도 같은 PlayerId의 서버 PS를 찾아 바꾼다 ( 별도 프로세스 클라에서는 동작 안 함 )
+	// PIE는 서버 · 클라 월드가 한 프로세스라 클라 콘솔에서도 같은 PlayerId의 서버 PS를 찾아 바꾼다
+	// 별도 프로세스 클라는 ForwardToServer 로 서버에 보내고, 서버에서는 ForwardedCaller 의 PS 를 쓴다
 	ADC1PlayerState* FindAuthorityPlayerState(UWorld* InWorld, FOutputDevice& Ar)
 	{
+		if (true == ForwardedCaller.IsValid())
+		{
+			return ForwardedCaller->GetPlayerState<ADC1PlayerState>();
+		}
+
 		const UGameInstance* GameInstance = (true == ::IsValid(InWorld)) ? InWorld->GetGameInstance() : nullptr;
 		const APlayerController* LocalPC = (nullptr != GameInstance) ? GameInstance->GetFirstLocalPlayerController() : nullptr;
 		ADC1PlayerState* LocalPS = (nullptr != LocalPC) ? LocalPC->GetPlayerState<ADC1PlayerState>() : nullptr;
@@ -88,6 +134,11 @@ namespace DC1DebugCommands
 			return;
 		}
 
+		if (true == ForwardToServer(TEXT("DC1.AddItem"), InArgs, InWorld, Ar))
+		{
+			return;
+		}
+
 		const FName ItemID(*InArgs[0]);
 		const int32 Count = (InArgs.Num() > 1) ? FCString::Atoi(*InArgs[1]) : 1;
 		if (Count <= 0)
@@ -121,6 +172,11 @@ namespace DC1DebugCommands
 	// DC1.AddAllItems - Item / ValuableItem 테이블의 모든 아이템. MaxStack 1이면 1개, 그 외는 최대 1000개
 	void AddAllItems(const TArray<FString>& InArgs, UWorld* InWorld, FOutputDevice& Ar)
 	{
+		if (true == ForwardToServer(TEXT("DC1.AddAllItems"), InArgs, InWorld, Ar))
+		{
+			return;
+		}
+
 		ADC1PlayerState* PS = FindAuthorityPlayerState(InWorld, Ar);
 		UDC1PlayerInventoryComponent* Inventory = (nullptr != PS) ? PS->GetInventoryComponent() : nullptr;
 		if (false == ::IsValid(Inventory))
@@ -169,6 +225,11 @@ namespace DC1DebugCommands
 		if (InArgs.Num() < 1)
 		{
 			Ar.Logf(TEXT("Usage: DC1.AddPal <Species> [Count=1]   ex) DC1.AddPal Alpaca 5  /  DC1.AddPal Pal.Species.Alpaca"));
+			return;
+		}
+
+		if (true == ForwardToServer(TEXT("DC1.AddPal"), InArgs, InWorld, Ar))
+		{
 			return;
 		}
 
@@ -238,6 +299,11 @@ namespace DC1DebugCommands
 			return;
 		}
 
+		if (true == ForwardToServer(TEXT("DC1.AddExp"), InArgs, InWorld, Ar))
+		{
+			return;
+		}
+
 		const int32 Amount = FCString::Atoi(*InArgs[0]);
 		if (Amount <= 0)
 		{
@@ -293,6 +359,11 @@ namespace DC1DebugCommands
 			return;
 		}
 
+		if (true == ForwardToServer(TEXT("DC1.RemoveCraft"), InArgs, InWorld, Ar))
+		{
+			return;
+		}
+
 		const FName ItemID(*InArgs[0]);
 		const int32 Count = FCString::Atoi(*InArgs[1]);
 
@@ -330,6 +401,30 @@ namespace DC1DebugCommands
 			FAutoCompleteCommand Entry;
 			Entry.Command = FString::Printf(TEXT("DC1.AddItem %s"), *Row.ItemID.ToString());
 			Entry.Desc = Row.ItemName.ToString();
+			OutList.Add(MoveTemp(Entry));
+		}
+	}
+
+	// 레지스트리에 데이터가 있는 종만. PalData 는 로드하지 않는다 ( 투사체 등 하드 참조가 많아 콘솔 열 때 멈춘다 ) → 설명은 태그
+	void AddPalAutoCompleteEntries(TArray<FAutoCompleteCommand>& OutList)
+	{
+		const UDC1PalRegistryData* Registry = UDC1AssetManager::GetAssetByTag<UDC1PalRegistryData>(DC1AssetTags::Asset_Pal_Registry);
+		if (false == ::IsValid(Registry))
+		{
+			return;
+		}
+
+		for (const TPair<FGameplayTag, TSoftObjectPtr<UDC1PalData>>& Pair : Registry->PalDataEntries)
+		{
+			const FString TagName = Pair.Key.ToString();
+
+			// AddPal 은 '.' 이 없으면 Pal.Species. 를 붙인다 → 바로 아래 단계면 짧은 이름, 더 깊으면 전체 태그
+			FString Species = TagName;
+			const bool IsShortName = Species.RemoveFromStart(TEXT("Pal.Species.")) && false == Species.Contains(TEXT("."));
+
+			FAutoCompleteCommand Entry;
+			Entry.Command = FString::Printf(TEXT("DC1.AddPal %s"), (true == IsShortName) ? *Species : *TagName);
+			Entry.Desc = TagName;
 			OutList.Add(MoveTemp(Entry));
 		}
 	}
@@ -373,6 +468,7 @@ namespace DC1DebugCommands
 	FDelayedAutoRegisterHelper ItemAutoCompleteRegister(EDelayedRegisterRunPhase::EndOfEngineInit, []()
 	{
 		UConsole::RegisterConsoleAutoCompleteEntries.AddStatic(&AddItemAutoCompleteEntries);
+		UConsole::RegisterConsoleAutoCompleteEntries.AddStatic(&AddPalAutoCompleteEntries);
 	});
 }
 

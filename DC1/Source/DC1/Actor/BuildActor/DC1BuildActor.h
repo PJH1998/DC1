@@ -131,6 +131,8 @@ public:
 
 	// None == 설치가능, 그 외 설치불가 이유 return
 	EDC1BuildBlockReason			UpdatePreview(bool InIsInRange, const APlayerState* InBuilder);
+	// 미리보기 / 서버 배치 검증 공용 판정
+	EDC1BuildBlockReason			EvaluateBlockReason(bool InIsInRange, const APlayerState* InBuilder);
 	bool							TraceCheckBox(const FVector& InRayStart, const FVector& InRayEnd, const FCollisionQueryParams& InParams, float InInflate, FVector& OutImpactPoint) const;
 
 	void							InitPreview(const FDC1BuildActorData& InBuildActorData);
@@ -152,8 +154,6 @@ protected:
 
 private:
 	void							FinishDestroySequence();
-
-	EDC1BuildBlockReason			EvaluateBlockReason(bool InIsInRange, const APlayerState* InBuilder);
 
 protected:
 	UPROPERTY(EditDefaultsOnly)

@@ -161,11 +161,7 @@ void ADC1ResourceActor::ApplyWorkHit(const ADC1Character* InWorker, float InMult
 	// 체력 감소는 AttributeSet의 PostGameplayEffectExecute가
 	Spec.Data->SetSetByCallerMagnitude(DC1EffectTags::SetByCaller_Damage, Damage);
 
-	const float OldHealth = AbilitySystemComponent->GetNumericAttribute(UDC1AttributeSet::GetHealthAttribute());
 	SourceASC->ApplyGameplayEffectSpecToTarget(*Spec.Data.Get(), AbilitySystemComponent);
-	const float NewHealth = AbilitySystemComponent->GetNumericAttribute(UDC1AttributeSet::GetHealthAttribute());
-
-	UE_LOG(LogTemp, Log, TEXT("[DC1] %s work hit : %s speed %.1f x %.2f = %.1f, HP %.1f -> %.1f"), *GetName(), *GetNameSafe(Pal), WorkerSpeed, InMultiplier, Damage, OldHealth, NewHealth);
 }
 
 void ADC1ResourceActor::PostInitializeComponents()
@@ -349,8 +345,6 @@ void ADC1ResourceActor::AccumulateDrop(float InDamage, const FVector& InOrigin)
 
 	const int32 DropTimes = FMath::FloorToInt32(AccumulatedDropDamage / DropDamage);
 	AccumulatedDropDamage -= DropTimes * DropDamage;
-
-	UE_LOG(LogTemp, Log, TEXT("[DC1] %s drop : damage %.1f -> %d drop(s), remain %.1f"), *GetName(), InDamage, DropTimes, AccumulatedDropDamage);
 
 	// 맞은 지점 ( 공격자 쪽 표면 ) 에서 위로 간격만 둠 - 이후 물리로 떨어지며 겹치면 살짝만 밀림
 	int32 SpawnIndex = 0;
