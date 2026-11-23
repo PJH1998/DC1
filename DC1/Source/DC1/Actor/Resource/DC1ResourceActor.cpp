@@ -227,7 +227,8 @@ void ADC1ResourceActor::HandleHealthChanged(const FOnAttributeChangeData& InData
 	ApplyScale();
 
 	// 한 단계 작아질 때 ( 바위 깨짐 ). 고갈은 DestroySound 가 대신함
-	if (EDC1ResourceActorState::Active == ResourceState && InData.NewValue > 0.f && ResourceMesh->GetRelativeScale3D().X < PrevMeshScale.X)
+	if (EDC1ResourceActorState::Active == 
+		ResourceState && InData.NewValue > 0.f && ResourceMesh->GetRelativeScale3D().X < PrevMeshScale.X)
 	{
 		UGameplayStatics::PlaySoundAtLocation(this, StageBreakSound, ResourceMesh->Bounds.Origin);
 	}
@@ -241,14 +242,15 @@ void ADC1ResourceActor::HandleHealthChanged(const FOnAttributeChangeData& InData
 	WakeForReplication();
 
 	// HandleDamageApplied이 먼저 계산해 둔 위치 ( 같은 GE 안에서 Damage -> PostGameplayEffectExecute -> Health 순 )
-	const FVector DropOrigin = (true == HasPendingDropOrigin) ? PendingDropOrigin : GetDropOrigin((nullptr != InData.GEModData) ? &InData.GEModData->EffectSpec : nullptr);
+	const FVector DropOrigin = (true == HasPendingDropOrigin) ? 
+		PendingDropOrigin : GetDropOrigin((nullptr != InData.GEModData) ? &InData.GEModData->EffectSpec : nullptr);
 	HasPendingDropOrigin = false;
 
 	AccumulateDrop(InData.OldValue - InData.NewValue, DropOrigin);
 
 	if (InData.NewValue <= 0.f)
 	{
-		// 채집 경험치 - 마지막 타격이 플레이어일 때만 ( 팰 작업 제외, TODO 임시값 )
+		// 채집 경험치 - 마지막 타격이 플레이어일 때만 ( 팰 작업 제외 )
 		ADC1PlayerState* LastPlayerState = Cast<ADC1PlayerState>(LastDamageInstigator.Get());
 		UDC1ExperienceSubsystem* ExpSubsystem = GetWorld()->GetSubsystem<UDC1ExperienceSubsystem>();
 		if (nullptr != LastPlayerState && nullptr != ExpSubsystem)
@@ -274,7 +276,8 @@ void ADC1ResourceActor::SetResourceState(EDC1ResourceActorState InNewState)
 	if (true == IsDepleted)
 	{
 		const AGameStateBase* GameState = GetWorld()->GetGameState();
-		DepletedServerTime = (true == ::IsValid(GameState)) ? GameState->GetServerWorldTimeSeconds() : GetWorld()->GetTimeSeconds();
+		DepletedServerTime = (true == ::IsValid(GameState)) ? 
+			GameState->GetServerWorldTimeSeconds() : GetWorld()->GetTimeSeconds();
 
 		GetWorldTimerManager().SetTimer(RespawnTimer, this, &ThisClass::Respawn, RespawnTime, false);
 

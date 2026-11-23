@@ -191,7 +191,7 @@ void ADC1ProductionBuildActor::OnWorkTick(float InWork)
 		NewCount += ProductCountPerWork;
 	}
 
-	// 작업 경험치 - 생산이 늘었을 때 작업 중인 플레이어 ( 아래 ClearWorkers 전, TODO 임시값 )
+	// 작업 경험치 - 생산이 늘었을 때 작업 중인 플레이어
 	if (NewCount > StoredCount)
 	{
 		GrantExpToPlayerWorkers(DC1PlayerTags::Event_Exp_Player_Work, 10);
@@ -211,7 +211,6 @@ void ADC1ProductionBuildActor::OnWorkTick(float InWork)
 		OnProductionChanged.Broadcast();
 		return;
 	}
-
 
 	SetStoredCount(NewCount);
 }

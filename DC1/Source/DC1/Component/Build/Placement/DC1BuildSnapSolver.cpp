@@ -380,7 +380,8 @@ bool UDC1BuildSnapSolver::SelectPreviewSocket(const ADC1BuildActor* InPreview,
 	return IsFindPreviewSocket;
 }
 
-const FTransform UDC1BuildSnapSolver::MakeSnapTransform(const ADC1BuildActor* InPreview, float InCurrentYaw, const FDC1BuildSnapPair& InPair) const
+const FTransform UDC1BuildSnapSolver::MakeSnapTransform(const ADC1BuildActor* InPreview, 
+	float InCurrentYaw, const FDC1BuildSnapPair& InPair) const
 {
 	// 두 소켓이 마주보게
 	const FTransform Desired = SnapSocketFlip * InPair.TargetSocket.SocketTransform;

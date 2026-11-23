@@ -22,7 +22,8 @@ namespace
 	}
 }
 
-void DC1CraftHelper::GetCraftInventories(const ADC1PlayerState* InPlayerState, TArray<UDC1InventoryComponentBase*>& OutInventories)
+void DC1CraftHelper::GetCraftInventories(const ADC1PlayerState* InPlayerState, 
+	TArray<UDC1InventoryComponentBase*>& OutInventories)
 {
 	if (false == ::IsValid(InPlayerState))
 	{
