@@ -77,7 +77,7 @@ void UDC1GA_Player_Work::EndAbility(const FGameplayAbilitySpecHandle Handle, con
 	BuildCompletedDelegateHandle.Reset();
 
 	UDC1InteractComponent* InteractComp = GetInteractComponent();
-	if (true == ::IsValid(InteractComp) && nullptr != ActorInfo && true == ActorInfo->IsLocallyControlled())
+	if (true == ::IsValid(InteractComp))
 	{
 		InteractComp->SetTargetLocked(false);
 	}
@@ -114,7 +114,8 @@ void UDC1GA_Player_Work::OnLocalWorkTargetFound(IDC1WorkTargetInterface* InWorkT
 		ActorData->TargetActorArray.Add(Cast<AActor>(InWorkTarget));
 
 		FGameplayAbilityTargetDataHandle DataHandle(ActorData);
-		ASC->CallServerSetReplicatedTargetData(CurrentSpecHandle, CurrentActivationInfo.GetActivationPredictionKey(), DataHandle, FGameplayTag(), ASC->ScopedPredictionKey);
+		ASC->CallServerSetReplicatedTargetData(CurrentSpecHandle, 
+			CurrentActivationInfo.GetActivationPredictionKey(), DataHandle, FGameplayTag(), ASC->ScopedPredictionKey);
 	}
 
 	// 완성 통지는 건축물만 - 플레이어 작업 대상은 상호작용 건축물뿐

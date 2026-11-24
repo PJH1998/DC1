@@ -373,7 +373,8 @@ bool UDC1BuildCheckComponent::ForEachProbe(TFunctionRef<bool(const FHitResult& I
 
 			FHitResult Hit;
 
-			const bool IsHit = World->LineTraceSingleByChannel(Hit, Start, End, static_cast<ECollisionChannel>(EDC1CollisionLayer::ECC_BuildSurface), Params);
+			const bool IsHit = World->LineTraceSingleByChannel(Hit, Start, End, 
+				static_cast<ECollisionChannel>(EDC1CollisionLayer::ECC_BuildSurface), Params);
 
 			if (true == DrawDebugProbes)
 			{

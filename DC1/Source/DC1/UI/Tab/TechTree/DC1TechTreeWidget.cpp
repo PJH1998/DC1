@@ -217,7 +217,7 @@ void UDC1TechTreeWidget::InitTechTree()
 
 		TechTreeScrollBox->AddChild(RowWidget);
 
-		for (const FDC1TechRow Row : RowsByLevel[AddLevel])
+		for (const FDC1TechRow& Row : RowsByLevel[AddLevel])
 		{
 			UDC1TechTreeButton* TechSlot = RowWidget->AddTechSlot(Row);
 			if (true == ::IsValid(TechSlot) && true == ::IsValid(CachedViewModel))

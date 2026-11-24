@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 
 #include "Component/Build/Placement/DC1BuildSnapSolver.h"
@@ -341,9 +341,15 @@ bool UDC1BuildSnapSolver::FindBestSnapPair(const FDC1BuildSnapInput& InInput, co
 	return IsFind;
 }
 
-bool UDC1BuildSnapSolver::SelectPreviewSocket(const ADC1BuildActor* InPreview, const FDC1BuildSnapSocket& InTarget, const TArray<FDC1BuildSnapSocket>& InPreviewSockets, float InReferenceYaw, FDC1BuildSnapSocket& OutPreview) const
+bool UDC1BuildSnapSolver::SelectPreviewSocket(const ADC1BuildActor* InPreview, 
+	const FDC1BuildSnapSocket& InTarget, 
+	const TArray<FDC1BuildSnapSocket>& InPreviewSockets, 
+	float InReferenceYaw, FDC1BuildSnapSocket& OutPreview) const
 {
 	float MinDifference = FLT_MAX;
+
+	// 타겟 소켓 기준이라 프리뷰 소켓과 무관 - 루프 밖에서 한 번만
+	const FTransform Desired = SnapSocketFlip * InTarget.SocketTransform;
 
 	bool IsFindPreviewSocket = false;
 	for (const FDC1BuildSnapSocket& PreviewSocket : InPreviewSockets)
@@ -352,8 +358,6 @@ bool UDC1BuildSnapSolver::SelectPreviewSocket(const ADC1BuildActor* InPreview, c
 		{
 			continue;
 		}
-
-		const FTransform Desired = SnapSocketFlip * InTarget.SocketTransform;
 
 		const FQuat DeltaQuat = Desired.GetRotation() * PreviewSocket.SocketTransform.GetRotation().Inverse();
 
@@ -376,7 +380,8 @@ bool UDC1BuildSnapSolver::SelectPreviewSocket(const ADC1BuildActor* InPreview, c
 	return IsFindPreviewSocket;
 }
 
-const FTransform UDC1BuildSnapSolver::MakeSnapTransform(const ADC1BuildActor* InPreview, float InCurrentYaw, const FDC1BuildSnapPair& InPair) const
+const FTransform UDC1BuildSnapSolver::MakeSnapTransform(const ADC1BuildActor* InPreview, 
+	float InCurrentYaw, const FDC1BuildSnapPair& InPair) const
 {
 	// 두 소켓이 마주보게
 	const FTransform Desired = SnapSocketFlip * InPair.TargetSocket.SocketTransform;

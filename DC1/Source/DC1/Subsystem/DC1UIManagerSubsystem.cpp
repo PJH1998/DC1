@@ -299,7 +299,8 @@ UDC1UserWidget* UDC1UIManagerSubsystem::PushScreenInternal(UDC1UserWidget* InWid
 	return InWidget;
 }
 
-UDC1UserWidget* UDC1UIManagerSubsystem::PushScreenInternal(const FGameplayTag& InUITag, TSubclassOf<UDC1UserWidget> InWidgetClass)
+UDC1UserWidget* UDC1UIManagerSubsystem::PushScreenInternal(const FGameplayTag& InUITag, 
+	TSubclassOf<UDC1UserWidget> InWidgetClass)
 {
 	// 레벨 전환 시점 Player 생성 확인 + Server 확인
 	APlayerController* LocalPC = GetLocalPC();
